@@ -1,0 +1,890 @@
+{
+  "metadata": {
+    "description": "Emotion-aware food recommendation knowledge base. Negative emotions use nutritional psychiatry. Positive emotions use food preference psychology as context for recommendation.",
+    "disclaimer": "This app is not a medical diagnosis or treatment tool. It is designed for general users to support emotional awareness and healthy food choices. Users with clinical conditions should consult a healthcare professional.",
+    "system_purpose": {
+      "negative_emotions": "For negative emotions (sadness, anxiety, anger, fear), foods are recommended based on nutritional psychiatry research showing that specific nutrients support mood regulation, stress response, and brain function.",
+      "positive_emotions": "For positive emotions (happiness, excitement, gratitude), the emotion is used as contextual information only. The system does not try to change or increase the emotion. Instead it recommends appropriate and healthy foods that research shows users may prefer in that emotional state.",
+      "core_principle": "The system uses emotion as a context for recommendation rather than as a condition that must always be corrected."
+    },
+    "positive_emotion_framework": {
+      "source_1": "Lyman B (1982). The nutritional values and food group characteristics of foods preferred during various emotions. Journal of Psychology, 112(1), 121-127. Finding: People report greater tendency to consume healthy foods during positive emotions.",
+      "source_2": "Cameron EM et al. (2015). Meta-analysis: Induced positive affect led participants to choose healthier foods. Supports recommending healthy foods for positive emotional states.",
+      "source_3": "Zhou X & Tse CS (2020). Sweet taste is conceptually associated with positive emotion words like happiness, love, and gratitude. Frontiers in Psychology.",
+      "source_4": "Macht M (2008). How emotions affect eating: A five-way model. Appetite, 50(1), 1-11. Shows that joy is associated with hedonic eating — enjoying food for pleasure."
+    },
+    "usda_api": {
+      "base_url": "https://api.nal.usda.gov/fdc/v1",
+      "search_endpoint": "GET /foods/search?nutrients={ids}&dataType=Foundation,SR%20Legacy&pageSize=50&api_key=YOUR_KEY",
+      "scoring_formula": "score = SUM( (amount_per_100g / min_amount_per_100g) * (1 / priority) )"
+    },
+    "diet_filter_rules": {
+      "omnivore": "No restrictions",
+      "vegetarian": "Exclude: Poultry Products, Beef Products, Pork Products, Finfish and Shellfish Products",
+      "vegan": "Exclude: Poultry Products, Beef Products, Pork Products, Finfish and Shellfish Products, Dairy and Egg Products",
+      "pescatarian": "Exclude: Poultry Products, Beef Products, Pork Products, Lamb Products"
+    },
+    "allergen_filter": {
+      "note": "USDA API does not return allergen data. Use category_map to flag foods by their USDA food category. Also scan food name using keywords as backup.",
+      "supported_allergens": [
+        "gluten",
+        "dairy",
+        "eggs",
+        "fish",
+        "shellfish",
+        "tree_nuts",
+        "peanuts",
+        "soy",
+        "poultry"
+      ],
+      "category_map": {
+        "Finfish and Shellfish Products": [
+          "fish",
+          "shellfish"
+        ],
+        "Dairy and Egg Products": [
+          "dairy",
+          "eggs"
+        ],
+        "Legumes and Legume Products": [
+          "soy",
+          "peanuts"
+        ],
+        "Nut and Seed Products": [
+          "tree_nuts"
+        ],
+        "Poultry Products": [
+          "poultry"
+        ],
+        "Baked Products": [
+          "gluten",
+          "dairy"
+        ],
+        "Cereal Grains and Pasta": [
+          "gluten"
+        ]
+      },
+      "keyword_map": {
+        "fish": [
+          "salmon",
+          "tuna",
+          "mackerel",
+          "sardine",
+          "cod",
+          "tilapia",
+          "herring",
+          "trout"
+        ],
+        "shellfish": [
+          "shrimp",
+          "crab",
+          "lobster",
+          "prawn",
+          "oyster",
+          "scallop",
+          "mussel"
+        ],
+        "dairy": [
+          "milk",
+          "cheese",
+          "yogurt",
+          "butter",
+          "cream",
+          "whey",
+          "lactose"
+        ],
+        "eggs": [
+          "egg",
+          "mayonnaise"
+        ],
+        "tree_nuts": [
+          "almond",
+          "walnut",
+          "cashew",
+          "pistachio",
+          "pecan",
+          "hazelnut"
+        ],
+        "peanuts": [
+          "peanut",
+          "groundnut"
+        ],
+        "gluten": [
+          "wheat",
+          "bread",
+          "pasta",
+          "flour",
+          "barley",
+          "rye"
+        ],
+        "soy": [
+          "soy",
+          "tofu",
+          "edamame",
+          "tempeh",
+          "miso"
+        ],
+        "poultry": [
+          "chicken",
+          "turkey",
+          "duck"
+        ]
+      }
+    }
+  },
+  "emotions": [
+    {
+      "emotion_id": "sadness",
+      "emotion_name": "Sadness",
+      "emoji": "😢",
+      "color_hex": "#5B9BD5",
+      "valence": "negative",
+      "goal": "regulate",
+      "brain_state": "Serotonin (low), Dopamine (low), Norepinephrine (low)",
+      "app_message": "It's okay to feel this way. These foods are known to support your brain during low moods.",
+      "avoid": [
+        "alcohol",
+        "trans fats",
+        "excess refined sugar"
+      ],
+      "diet_notes": {
+        "vegan": "Walnuts and flaxseed for omega-3. Fortified plant milk for B12 and D. Pumpkin seeds for zinc and magnesium. Brazil nuts for selenium.",
+        "vegetarian": "Same as vegan. Add eggs and dairy for B12 and D.",
+        "pescatarian": "Salmon and mackerel are ideal omega-3 sources."
+      },
+      "nutrients": [
+        {
+          "name": "Omega-3 Fatty Acids",
+          "usda_nutrient_id": "1404",
+          "unit": "g",
+          "min_amount_per_100g": 0.5,
+          "priority": 1,
+          "classification": "essential_fatty_acid",
+          "xai": {
+            "user_message": "Rich in Omega-3 — the most researched nutrient for low mood. Helps restore how your brain communicates using mood hormones.",
+            "psychological_explanation": "Omega-3 is one of the most studied nutrients for depression and low mood. A major clinical trial called the SMILES trial (Jacka et al., 2017) showed that improving diet — including omega-3 rich foods — significantly reduced depression scores in adults. People with higher omega-3 intake tend to have better emotional resilience and less severe low moods.",
+            "biological_explanation": "Omega-3 fatty acids (EPA and DHA) are absorbed into the membranes of brain cells, making it easier for mood-related chemicals like serotonin and dopamine to attach to their receptors. EPA also reduces brain inflammation — which is linked to low mood — by producing natural anti-inflammatory compounds in the body.",
+            "references": [
+              "Jacka FN et al. (2017). A randomised controlled trial of dietary improvement for adults with major depression (the SMILES trial). BMC Medicine, 15(1), 23.",
+              "Grosso G et al. (2014). Role of omega-3 fatty acids in the treatment of depressive disorders: a comprehensive meta-analysis of RCTs. PLoS ONE, 9(5), e96905.",
+              "Larrieu T & Layé S (2018). Food for Mood: Relevance of nutritional omega-3 fatty acids for depression and anxiety. Frontiers in Physiology, 9, 1047."
+            ]
+          }
+        },
+        {
+          "name": "Vitamin D",
+          "usda_nutrient_id": "1114",
+          "unit": "IU",
+          "min_amount_per_100g": 50,
+          "priority": 2,
+          "classification": "fat_soluble_vitamin",
+          "xai": {
+            "user_message": "Contains Vitamin D — controls the enzyme that produces serotonin. Low Vitamin D is strongly linked to low mood.",
+            "psychological_explanation": "Research consistently shows that people with low Vitamin D levels are more likely to experience depression and low mood. A meta-analysis of multiple studies (Shaffer et al., 2014) found that Vitamin D supplementation improved depressive symptoms. It supports the brain chemistry behind feeling okay.",
+            "biological_explanation": "Vitamin D controls the activity of a gene called TPH2, which is responsible for producing serotonin in the brain. Without enough Vitamin D, the brain makes less serotonin. Vitamin D receptors are found throughout the brain, including areas that control mood and emotional processing.",
+            "references": [
+              "Patrick RP & Ames BN (2015). Vitamin D and the omega-3 fatty acids control serotonin synthesis and action, part 2. FASEB Journal, 29(6), 2207–2222.",
+              "Shaffer JA et al. (2014). Vitamin D supplementation for depressive symptoms: a systematic review and meta-analysis. Psychosomatic Medicine, 76(3), 190–196.",
+              "Anglin RE et al. (2013). Vitamin D deficiency and depression in adults: systematic review and meta-analysis. British Journal of Psychiatry, 202, 100–107."
+            ]
+          }
+        },
+        {
+          "name": "Magnesium",
+          "usda_nutrient_id": "1090",
+          "unit": "mg",
+          "min_amount_per_100g": 20,
+          "priority": 3,
+          "classification": "essential_mineral",
+          "xai": {
+            "user_message": "Good source of Magnesium — low magnesium is directly linked to depression. Supports your brain's chemical balance.",
+            "psychological_explanation": "Studies consistently show that people with lower magnesium levels are more likely to have depressive symptoms. A randomised clinical trial (Tarleton et al., 2017) found that magnesium supplementation significantly improved depression in adults within 6 weeks.",
+            "biological_explanation": "Magnesium controls the stress hormone system (called the HPA axis), stopping it from overproducing cortisol. It also blocks a brain receptor called NMDA which, when overstimulated, causes nerve cell damage linked to depression. Magnesium is needed for over 300 chemical reactions in the body, including making neurotransmitters.",
+            "references": [
+              "Tarleton EK et al. (2017). Role of magnesium supplementation in the treatment of depression: a randomized clinical trial. PLoS ONE, 12(6), e0180067.",
+              "Eby GA & Eby KL (2006). Rapid recovery from major depression using magnesium treatment. Medical Hypotheses, 67(2), 362–370."
+            ]
+          }
+        },
+        {
+          "name": "Zinc",
+          "usda_nutrient_id": "1095",
+          "unit": "mg",
+          "min_amount_per_100g": 1,
+          "priority": 4,
+          "classification": "essential_mineral",
+          "xai": {
+            "user_message": "Contains Zinc — low zinc is a known marker for depression. Supports brain cell growth and mood recovery.",
+            "psychological_explanation": "A review of multiple studies (Swardfager et al., 2013) found that people with depression have significantly lower zinc levels than healthy people. Zinc supplementation alongside treatment improved mood outcomes. It supports the brain's ability to adapt and recover during low mood.",
+            "biological_explanation": "Zinc is essential for making a brain growth protein called BDNF (Brain-Derived Neurotrophic Factor), which helps grow and repair brain cells in mood-related areas like the hippocampus. Low BDNF is a well-known feature of depression. Zinc also regulates serotonin receptors.",
+            "references": [
+              "Swardfager W et al. (2013). Potential roles of zinc in the pathophysiology and treatment of major depressive disorder. Neuroscience and Biobehavioral Reviews, 37(5), 911–929.",
+              "Nowak G et al. (2003). Effect of zinc supplementation on antidepressant therapy. Polish Journal of Pharmacology, 55(6), 1143–1147."
+            ]
+          }
+        },
+        {
+          "name": "Vitamin B12",
+          "usda_nutrient_id": "1178",
+          "unit": "mcg",
+          "min_amount_per_100g": 0.5,
+          "priority": 5,
+          "classification": "water_soluble_vitamin",
+          "xai": {
+            "user_message": "Source of Vitamin B12 — deficiency directly causes low mood and fatigue. Supports serotonin production in the brain.",
+            "psychological_explanation": "Vitamin B12 deficiency is directly associated with depression, fatigue, and emotional instability. These symptoms are reversible when B12 levels are restored. Research (Coppen & Bolander-Gouaille, 2005) recommends B12 as part of depression treatment support.",
+            "biological_explanation": "B12 is needed to produce a compound called SAM-e, which is the main ingredient the brain uses to make serotonin, dopamine, and norepinephrine. Without B12, SAM-e levels drop, neurotransmitter production slows, and mood suffers. B12 also protects the protective coating around nerve cells (called myelin).",
+            "references": [
+              "Coppen A & Bolander-Gouaille C (2005). Treatment of depression: time to consider folic acid and vitamin B12. Journal of Psychopharmacology, 19(1), 59–65.",
+              "Lachance L & Ramsey D (2015). Antidepressant foods: An evidence-based nutrient profiling system. World Journal of Psychiatry, 5(4), 359."
+            ]
+          }
+        },
+        {
+          "name": "Selenium",
+          "usda_nutrient_id": "1103",
+          "unit": "mcg",
+          "min_amount_per_100g": 10,
+          "priority": 6,
+          "classification": "essential_trace_mineral",
+          "xai": {
+            "user_message": "Contains Selenium — a clinical trial showed selenium directly improves mood in people with low levels.",
+            "psychological_explanation": "A double-blind crossover clinical trial (Benton & Cook, 1991) found that selenium supplementation significantly improved mood, reducing depression, anxiety, and fatigue. Selenium deficiency is associated with negative mood states.",
+            "biological_explanation": "Selenium is a key part of an antioxidant enzyme in the brain called glutathione peroxidase. This enzyme protects brain cells from damage caused by oxidative stress. Without enough selenium, this protection weakens, and mood-related brain areas become more vulnerable.",
+            "references": [
+              "Benton D & Cook R (1991). Selenium supplementation improves mood in a double-blind crossover trial. Psychopharmacology, 102(4), 549–550.",
+              "Rayman MP (2012). Selenium and human health. The Lancet, 379(9822), 1256–1268."
+            ]
+          }
+        }
+      ],
+      "supportive_compounds": []
+    },
+    {
+      "emotion_id": "anxiety",
+      "emotion_name": "Anxiety",
+      "emoji": "😰",
+      "color_hex": "#FF7043",
+      "valence": "negative",
+      "goal": "regulate",
+      "brain_state": "Cortisol (high), GABA (low), Serotonin (low), Norepinephrine (high)",
+      "app_message": "You are not alone. These foods are backed by research to help calm the nervous system.",
+      "avoid": [
+        "caffeine",
+        "alcohol",
+        "high-sugar foods",
+        "excess sodium"
+      ],
+      "diet_notes": {
+        "vegan": "Pumpkin seeds (magnesium and zinc), dark leafy greens (magnesium), citrus fruits (vitamin C), flaxseed (omega-3), bananas (B6).",
+        "vegetarian": "Same as vegan. Add eggs for B6.",
+        "pescatarian": "Salmon and mackerel for omega-3. All other nutrients from plant sources."
+      },
+      "nutrients": [
+        {
+          "name": "Magnesium",
+          "usda_nutrient_id": "1090",
+          "unit": "mg",
+          "min_amount_per_100g": 30,
+          "priority": 1,
+          "classification": "essential_mineral",
+          "xai": {
+            "user_message": "Rich in Magnesium — a meta-analysis of 18 clinical trials confirmed it reduces anxiety. Works on the same brain receptor as anti-anxiety medication.",
+            "psychological_explanation": "A large review of 18 randomised controlled trials (Boyle et al., 2017) found that magnesium supplementation significantly reduces anxiety and stress levels. People who are magnesium deficient tend to feel more anxious and react more strongly to stress.",
+            "biological_explanation": "Magnesium activates the brain's GABA-A receptors — the same receptors that anti-anxiety medications (like benzodiazepines) target. This reduces the overactivity of the nervous system during anxiety. Magnesium also calms the stress hormone system by reducing how much cortisol the body produces.",
+            "references": [
+              "Boyle NB et al. (2017). The effects of magnesium supplementation on subjective anxiety and stress — a systematic review. Nutrients, 9(5), 429.",
+              "Poleszak E (2008). Benzodiazepine/GABA(A) receptors are involved in magnesium-induced anxiolytic-like behavior in mice. Pharmacological Reports, 60(4), 483–489."
+            ]
+          }
+        },
+        {
+          "name": "Omega-3 Fatty Acids",
+          "usda_nutrient_id": "1404",
+          "unit": "g",
+          "min_amount_per_100g": 0.5,
+          "priority": 2,
+          "classification": "essential_fatty_acid",
+          "xai": {
+            "user_message": "High in Omega-3 — a meta-analysis of 19 trials showed it significantly reduces anxiety by lowering stress hormones and brain inflammation.",
+            "psychological_explanation": "A meta-analysis published in JAMA Network Open (Su et al., 2018) reviewed 19 clinical trials and found omega-3 supplementation significantly reduces anxiety symptoms. It is one of the most robustly supported nutrients for anxiety reduction.",
+            "biological_explanation": "The EPA component of omega-3 reduces brain inflammation by producing natural anti-inflammatory compounds called SPMs. It also lowers cortisol (the stress hormone) by calming the HPA axis — the body's stress control system. DHA improves how well serotonin and dopamine receptors work in the brain.",
+            "references": [
+              "Su KP et al. (2018). Association of use of omega-3 polyunsaturated fatty acids with changes in severity of anxiety symptoms. JAMA Network Open, 1(5), e182327.",
+              "Kelaiditis CF et al. (2023). Effects of long-chain omega-3 polyunsaturated fatty acids on reducing anxiety and/or depression in adults. Prostaglandins, Leukotrienes and Essential Fatty Acids, 179, 102418."
+            ]
+          }
+        },
+        {
+          "name": "Vitamin B6",
+          "usda_nutrient_id": "1175",
+          "unit": "mg",
+          "min_amount_per_100g": 0.1,
+          "priority": 3,
+          "classification": "water_soluble_vitamin",
+          "xai": {
+            "user_message": "Contains Vitamin B6 — a 2022 clinical trial showed high-dose B6 significantly reduced anxiety by increasing GABA in the brain.",
+            "psychological_explanation": "A randomised controlled trial (Field et al., 2022) found that high-dose Vitamin B6 supplementation significantly reduced anxiety and feelings of stress in healthy young adults. Without B6, the brain struggles to make GABA — its main calming chemical.",
+            "biological_explanation": "Vitamin B6 (in its active form called pyridoxal-5-phosphate) is needed by an enzyme called GAD (glutamic acid decarboxylase) to convert glutamate into GABA. GABA is the brain's main inhibitory chemical — it slows down overactive nerve signals that cause anxiety. B6 is also needed for serotonin production.",
+            "references": [
+              "Field DT et al. (2022). High-dose Vitamin B6 supplementation reduces anxiety and strengthens visual surround suppression. Human Psychopharmacology, 37(6), e2852.",
+              "Dakshinamurti K (2015). Vitamins and their derivatives in the prevention and treatment of metabolic syndrome diseases. Canadian Journal of Physiology and Pharmacology, 93(7), 555–562."
+            ]
+          }
+        },
+        {
+          "name": "Vitamin C",
+          "usda_nutrient_id": "1162",
+          "unit": "mg",
+          "min_amount_per_100g": 10,
+          "priority": 4,
+          "classification": "water_soluble_vitamin",
+          "xai": {
+            "user_message": "Good source of Vitamin C — a clinical trial showed it reduces cortisol after stress and protects brain cells from anxiety-related damage.",
+            "psychological_explanation": "A randomised controlled trial (de Oliveira et al., 2015) found that Vitamin C supplementation significantly reduced anxiety in students. People under stress also tend to deplete Vitamin C quickly, so replenishing it supports emotional recovery.",
+            "biological_explanation": "Vitamin C lowers cortisol (stress hormone) levels by supporting the adrenal glands — which regulate the body's stress response. It is also a powerful antioxidant that protects brain cells from oxidative damage caused by long-term stress and anxiety.",
+            "references": [
+              "de Oliveira IJ et al. (2015). Effects of oral vitamin C supplementation on anxiety in students. Pakistan Journal of Biological Sciences, 18(1), 11–18.",
+              "Moritz B et al. (2020). The role of vitamin C in stress-related disorders. Journal of Nutritional Biochemistry, 85, 108459."
+            ]
+          }
+        },
+        {
+          "name": "Zinc",
+          "usda_nutrient_id": "1095",
+          "unit": "mg",
+          "min_amount_per_100g": 1,
+          "priority": 5,
+          "classification": "essential_mineral",
+          "xai": {
+            "user_message": "Contains Zinc — zinc deficiency is linked to increased anxiety. Helps balance the brain's excitatory and inhibitory signals.",
+            "psychological_explanation": "Studies show zinc deficiency is associated with increased anxiety symptoms and greater stress sensitivity. Zinc supplementation in deficient individuals has been shown to reduce anxiety.",
+            "biological_explanation": "Zinc moderates the activity of NMDA receptors — brain receptors that, when over-activated, cause the excessive excitatory nerve activity associated with anxiety. Zinc also supports BDNF (brain growth protein), helping the brain adapt better to stress.",
+            "references": [
+              "Mlyniec K et al. (2014). Essential elements in depression and anxiety. Part I. Pharmacological Reports, 66(4), 534–544."
+            ]
+          }
+        }
+      ],
+      "supportive_compounds": [
+        {
+          "name": "L-Theanine",
+          "type": "bioactive_amino_acid",
+          "found_in": [
+            "green tea",
+            "matcha"
+          ],
+          "mechanism": "Promotes calm alertness without sedation by increasing GABA and alpha brainwave activity. Reduces the physical stress response.",
+          "note": "Not a nutrient — it is a bioactive compound. Not tracked in USDA database. Recommend via green tea or matcha food sources.",
+          "reference": "Kimura K et al. (2007). L-Theanine reduces psychological and physiological stress responses. Biological Psychology, 74(1), 39–45."
+        }
+      ]
+    },
+    {
+      "emotion_id": "anger",
+      "emotion_name": "Anger",
+      "emoji": "😠",
+      "color_hex": "#E05C4B",
+      "valence": "negative",
+      "goal": "regulate",
+      "brain_state": "Cortisol (high), Serotonin (low), GABA (low), Norepinephrine (high)",
+      "app_message": "Let food help you reset. These nutrients are known to calm the stress response.",
+      "avoid": [
+        "caffeine",
+        "alcohol",
+        "excess sugar",
+        "high-sodium processed foods"
+      ],
+      "diet_notes": {
+        "vegan": "Dark leafy greens and pumpkin seeds (magnesium). Flaxseed and walnuts (omega-3). Fortified plant milk (B12). Bananas and avocado (B6).",
+        "vegetarian": "Same as vegan. Add eggs for B6 and B12.",
+        "pescatarian": "Oily fish like salmon and mackerel for omega-3. Plant sources for others."
+      },
+      "nutrients": [
+        {
+          "name": "Magnesium",
+          "usda_nutrient_id": "1090",
+          "unit": "mg",
+          "min_amount_per_100g": 30,
+          "priority": 1,
+          "classification": "essential_mineral",
+          "xai": {
+            "user_message": "Rich in Magnesium — natural stress buffer. Blunts the cortisol surge behind irritability and anger.",
+            "psychological_explanation": "A meta-analysis of 18 clinical trials (Boyle et al., 2017) confirmed that magnesium reduces stress and emotional overreactivity. Magnesium deficiency makes people more irritable and reactive to stressful situations, which worsens anger.",
+            "biological_explanation": "Magnesium blocks NMDA receptors in the brain — the receptors responsible for the overfiring of nerve cells that causes irritability and aggression. It also lowers cortisol production from the adrenal glands, reducing the hormonal surge behind anger.",
+            "references": [
+              "Boyle NB et al. (2017). The effects of magnesium supplementation on subjective anxiety and stress. Nutrients, 9(5), 429.",
+              "Mlyniec K et al. (2014). Pharmacological Reports, 66(4), 534–544."
+            ]
+          }
+        },
+        {
+          "name": "Omega-3 Fatty Acids",
+          "usda_nutrient_id": "1404",
+          "unit": "g",
+          "min_amount_per_100g": 0.3,
+          "priority": 2,
+          "classification": "essential_fatty_acid",
+          "xai": {
+            "user_message": "High in Omega-3 — a clinical trial showed omega-3 directly reduces aggression and irritability.",
+            "psychological_explanation": "A randomised controlled trial (Hamazaki et al., 1996) directly showed that omega-3 supplementation reduced aggression in healthy young adults. This is the only nutrient with a clinical trial specifically measuring anger and aggression reduction.",
+            "biological_explanation": "The EPA component of omega-3 reduces inflammatory brain chemicals (cytokines like IL-6 and IL-1β) that are associated with irritability and hostility. It also lowers cortisol reactivity, reducing how intensely the body responds to triggers.",
+            "references": [
+              "Hamazaki T et al. (1996). The effect of docosahexaenoic acid on aggression in young adults. Journal of Clinical Investigation, 97(4), 1129–1133.",
+              "Grosso G et al. (2014). PLoS ONE, 9(5), e96905."
+            ]
+          }
+        },
+        {
+          "name": "Vitamin B6",
+          "usda_nutrient_id": "1175",
+          "unit": "mg",
+          "min_amount_per_100g": 0.1,
+          "priority": 3,
+          "classification": "water_soluble_vitamin",
+          "xai": {
+            "user_message": "Contains Vitamin B6 — needed to make GABA and serotonin, the brain chemicals that keep anger and irritability under control.",
+            "psychological_explanation": "B6 deficiency reduces the brain's ability to produce GABA and serotonin — the two main chemicals that calm emotional reactivity. Lower levels of these chemicals make anger harder to control.",
+            "biological_explanation": "B6 is a cofactor (helper molecule) for GAD, the enzyme that makes GABA, and for the enzyme that converts tryptophan to serotonin. Both GABA and serotonin inhibit the brain's anger circuit in the amygdala and prefrontal cortex.",
+            "references": [
+              "Field DT et al. (2022). Human Psychopharmacology, 37(6), e2852.",
+              "Dakshinamurti K (2015). Canadian Journal of Physiology and Pharmacology, 93(7), 555–562."
+            ]
+          }
+        },
+        {
+          "name": "Vitamin B12",
+          "usda_nutrient_id": "1178",
+          "unit": "mcg",
+          "min_amount_per_100g": 0.3,
+          "priority": 4,
+          "classification": "water_soluble_vitamin",
+          "xai": {
+            "user_message": "Source of Vitamin B12 — supports the brain chemistry that helps regulate emotional reactions.",
+            "psychological_explanation": "B12 supports the production of SAM-e, which the brain needs to make serotonin, dopamine, and norepinephrine. These chemicals help the brain manage emotional reactions including anger.",
+            "biological_explanation": "B12 is required to convert homocysteine into methionine, which then becomes SAM-e — the universal methyl donor used in neurotransmitter synthesis. High homocysteine (from B12 deficiency) is associated with irritability and mood instability.",
+            "references": [
+              "Coppen A & Bolander-Gouaille C (2005). Journal of Psychopharmacology, 19(1), 59–65."
+            ]
+          }
+        }
+      ],
+      "supportive_compounds": []
+    },
+    {
+      "emotion_id": "fear",
+      "emotion_name": "Fear",
+      "emoji": "😨",
+      "color_hex": "#9B59B6",
+      "valence": "negative",
+      "goal": "regulate",
+      "brain_state": "GABA (low), Cortisol (high), Norepinephrine (high), Amygdala overactive",
+      "app_message": "Take a breath. These foods support the calming chemicals your brain needs right now.",
+      "avoid": [
+        "caffeine",
+        "alcohol",
+        "high-sodium foods"
+      ],
+      "diet_notes": {
+        "vegan": "Pumpkin seeds (magnesium and zinc), tofu and edamame (glutamine), bananas (B6), dark leafy greens (magnesium).",
+        "vegetarian": "Same as vegan. Add eggs for B6 and glutamine.",
+        "pescatarian": "All plant sources plus oily fish for extra omega-3 support."
+      },
+      "nutrients": [
+        {
+          "name": "Magnesium",
+          "usda_nutrient_id": "1090",
+          "unit": "mg",
+          "min_amount_per_100g": 30,
+          "priority": 1,
+          "classification": "essential_mineral",
+          "xai": {
+            "user_message": "Rich in Magnesium — activates the same brain receptor as anti-anxiety medication and calms the brain's overactive fear centre.",
+            "psychological_explanation": "Research (Poleszak, 2008) showed that magnesium activates GABA-A receptors — the same receptors that benzodiazepine medications (prescribed for fear and panic) target. This makes magnesium a natural calming mineral with a direct pharmacological mechanism.",
+            "biological_explanation": "Fear is driven by the amygdala — an almond-shaped brain structure that detects threat. Magnesium reduces amygdala overactivity by boosting GABA (the brain's calming chemical) and blocking NMDA receptors, which when overstimulated, keep the fear response going long after the threat is gone.",
+            "references": [
+              "Poleszak E (2008). Benzodiazepine/GABA(A) receptors are involved in magnesium-induced anxiolytic-like behavior in mice. Pharmacological Reports, 60(4), 483–489.",
+              "Boyle NB et al. (2017). Nutrients, 9(5), 429."
+            ]
+          }
+        },
+        {
+          "name": "Zinc",
+          "usda_nutrient_id": "1095",
+          "unit": "mg",
+          "min_amount_per_100g": 1,
+          "priority": 2,
+          "classification": "essential_mineral",
+          "xai": {
+            "user_message": "Contains Zinc — balances GABA and glutamate in the brain's fear centre. Low zinc makes fear responses worse.",
+            "psychological_explanation": "Zinc deficiency increases amygdala excitability and makes fear responses more intense. Studies (Mlyniec et al., 2014) show zinc modulates the balance between calming GABA and excitatory glutamate in fear-related brain areas.",
+            "biological_explanation": "Zinc acts as a regulator at GABA and NMDA synapses in the amygdala and hippocampus. It reduces NMDA receptor overactivation during fear and supports GABA signalling, helping the brain switch off the fear response more quickly.",
+            "references": [
+              "Mlyniec K et al. (2014). Pharmacological Reports, 66(4), 534–544."
+            ]
+          }
+        },
+        {
+          "name": "Glutamine",
+          "usda_nutrient_id": "1223",
+          "unit": "g",
+          "min_amount_per_100g": 0.5,
+          "priority": 3,
+          "classification": "conditionally_essential_amino_acid",
+          "xai": {
+            "user_message": "Source of Glutamine — the main building block your brain uses to make GABA, its natural calming chemical.",
+            "psychological_explanation": "GABA is the brain's most important calming neurotransmitter. When GABA is low, fear and anxiety signals go unchecked. Glutamine is the dietary precursor the brain uses to make GABA, so adequate glutamine supports the brain's ability to calm itself.",
+            "biological_explanation": "Glutamine is taken up by the brain and converted to glutamate by an enzyme called glutaminase. Glutamate is then converted to GABA by another enzyme called GAD (glutamic acid decarboxylase) — which requires Vitamin B6 to work. This is the main pathway through which diet supports GABA production.",
+            "references": [
+              "Petroff OA (2002). GABA and glutamate in the human brain. The Neuroscientist, 8(6), 562–573.",
+              "Poleszak E (2008). Pharmacological Reports, 60(4), 483–489."
+            ]
+          }
+        },
+        {
+          "name": "Vitamin B6",
+          "usda_nutrient_id": "1175",
+          "unit": "mg",
+          "min_amount_per_100g": 0.1,
+          "priority": 4,
+          "classification": "water_soluble_vitamin",
+          "xai": {
+            "user_message": "Contains Vitamin B6 — without B6, the brain cannot complete GABA production even if glutamine is available.",
+            "psychological_explanation": "B6 is the essential helper molecule for the enzyme that makes GABA. Studies (Field et al., 2022) show that B6 supplementation increases GABA levels and reduces anxiety. Without B6, the brain's calming system is incomplete.",
+            "biological_explanation": "The GAD enzyme (which converts glutamate to GABA) cannot work without pyridoxal-5-phosphate — the active form of Vitamin B6. This means that even if you eat glutamine-rich foods, the brain cannot make GABA without enough B6. B6 and glutamine work together as a team.",
+            "references": [
+              "Field DT et al. (2022). Human Psychopharmacology, 37(6), e2852.",
+              "Dakshinamurti K (2015). Canadian Journal of Physiology and Pharmacology, 93(7), 555–562."
+            ]
+          }
+        }
+      ],
+      "supportive_compounds": [
+        {
+          "name": "L-Theanine",
+          "type": "bioactive_amino_acid",
+          "found_in": [
+            "green tea",
+            "matcha"
+          ],
+          "mechanism": "Balances glutamate and GABA levels in the brain. Reduces physiological fear response without causing drowsiness.",
+          "note": "Not a nutrient — it is a bioactive compound. Not tracked in USDA database. Recommend via green tea or matcha food sources.",
+          "reference": "Kimura K et al. (2007). Biological Psychology, 74(1), 39–45."
+        }
+      ]
+    },
+    {
+      "emotion_id": "happiness",
+      "emotion_name": "Happiness",
+      "emoji": "😊",
+      "color_hex": "#4CAF7D",
+      "valence": "positive",
+      "goal": "vibe_match",
+      "food_preference_style": "sweet_and_fresh",
+      "app_message": "You are in a great mood! Here are some foods that match your happy vibe.",
+      "avoid": [
+        "excess alcohol",
+        "high-sugar junk food"
+      ],
+      "food_preference_research": {
+        "summary": "People in positive moods prefer healthy, fresh, and naturally sweet foods. Research shows happiness is associated with sweet taste preferences and healthier food choices overall.",
+        "references": [
+          "Lyman B (1982). The nutritional values and food group characteristics of foods preferred during various emotions. Journal of Psychology, 112(1), 121–127. Finding: Greater tendency to eat healthy foods during positive emotions.",
+          "Cameron EM et al. (2015). Positive emotions and their upregulation increase willingness to consume healthy foods. Meta-analysis finding: Positive affect led participants to choose healthier foods.",
+          "Zhou X & Tse CS (2020). Sweet taste is conceptually associated with happiness, love, and gratitude. Frontiers in Psychology.",
+          "Macht M (2008). How emotions affect eating: A five-way model. Appetite, 50(1), 1–11."
+        ]
+      },
+      "diet_notes": {
+        "vegan": "Bananas, oats, berries, dark chocolate, sunflower seeds, leafy greens, sweet potato, walnuts.",
+        "vegetarian": "Same as vegan. Add eggs for protein and B vitamins.",
+        "pescatarian": "Salmon for omega-3. All other nutrients from plant sources."
+      },
+      "nutrients": [
+        {
+          "name": "Tryptophan",
+          "usda_nutrient_id": "1210",
+          "unit": "g",
+          "min_amount_per_100g": 0.1,
+          "priority": 1,
+          "classification": "essential_amino_acid",
+          "xai": {
+            "user_message": "Rich in Tryptophan — the building block your brain uses to make serotonin, your natural happiness chemical.",
+            "psychological_explanation": "Research in healthy (non-depressed) adults shows that tryptophan intake directly influences mood. A randomised study (Markus et al., 2000) showed a high-tryptophan diet increased positive mood scores. This makes tryptophan-rich foods a great match for sustaining a happy feeling.",
+            "biological_explanation": "Tryptophan is the only dietary source the brain can use to make serotonin. It is converted to serotonin in two steps: first by the TPH2 enzyme (using Vitamin D), then by a second enzyme that needs Vitamin B6. Eating carbohydrates alongside tryptophan helps it enter the brain faster by reducing competition from other amino acids.",
+            "references": [
+              "Jenkins TA et al. (2016). Influence of tryptophan and serotonin on mood and cognition. Nutrients, 8(1), 56.",
+              "Markus CR et al. (2000). The bovine protein alpha-lactalbumin increases brain serotonin activity and improves mood under stress. American Journal of Clinical Nutrition, 71(6), 1536–1544.",
+              "Young SN (2007). How to increase serotonin in the human brain without drugs. Journal of Psychiatry and Neuroscience, 32(6), 394–399."
+            ]
+          }
+        },
+        {
+          "name": "Vitamin B6",
+          "usda_nutrient_id": "1175",
+          "unit": "mg",
+          "min_amount_per_100g": 0.1,
+          "priority": 2,
+          "classification": "water_soluble_vitamin",
+          "xai": {
+            "user_message": "Contains Vitamin B6 — your brain needs this to convert tryptophan into serotonin. Keeps your mood chemistry working well.",
+            "psychological_explanation": "B6 is essential for serotonin and dopamine production. Without enough B6, the brain cannot fully convert the tryptophan from food into serotonin, even if tryptophan intake is good.",
+            "biological_explanation": "Vitamin B6 in its active form (pyridoxal-5-phosphate) is a required cofactor for two key steps: making serotonin from 5-HTP and making dopamine from L-DOPA. It works as a helper molecule alongside tryptophan for maximum mood support.",
+            "references": [
+              "Jenkins TA et al. (2016). Nutrients, 8(1), 56.",
+              "Dakshinamurti K (2015). Canadian Journal of Physiology and Pharmacology, 93(7), 555–562."
+            ]
+          }
+        },
+        {
+          "name": "Folate (Vitamin B9)",
+          "usda_nutrient_id": "1177",
+          "unit": "mcg",
+          "min_amount_per_100g": 20,
+          "priority": 3,
+          "classification": "water_soluble_vitamin",
+          "xai": {
+            "user_message": "Good source of Folate — supports the cycle that keeps serotonin and dopamine production running smoothly.",
+            "psychological_explanation": "Folate is needed for the body to make SAM-e, a compound that regulates serotonin and dopamine levels. Low folate is associated with reduced positive mood even in healthy people.",
+            "biological_explanation": "Folate drives the one-carbon methylation cycle that produces SAM-e. SAM-e donates methyl groups needed for neurotransmitter synthesis. Without enough folate, this cycle slows down and neurotransmitter production drops.",
+            "references": [
+              "Coppen A & Bolander-Gouaille C (2005). Journal of Psychopharmacology, 19(1), 59–65.",
+              "Lachance L & Ramsey D (2015). World Journal of Psychiatry, 5(4), 359."
+            ]
+          }
+        },
+        {
+          "name": "Omega-3 Fatty Acids",
+          "usda_nutrient_id": "1404",
+          "unit": "g",
+          "min_amount_per_100g": 0.3,
+          "priority": 4,
+          "classification": "essential_fatty_acid",
+          "xai": {
+            "user_message": "High in Omega-3 — keeps your brain cell membranes healthy so mood chemicals work more effectively.",
+            "psychological_explanation": "Omega-3 supports positive mood and emotional resilience by improving how well the brain's neurotransmitter receptors function. People with higher omega-3 intake report better emotional well-being overall.",
+            "biological_explanation": "EPA and DHA from omega-3 are incorporated into the membranes of brain cells, making them more fluid. This improves how well serotonin and dopamine receptors can receive signals, keeping the happy mood chemistry working optimally.",
+            "references": [
+              "Larrieu T & Layé S (2018). Frontiers in Physiology, 9, 1047.",
+              "Grosso G et al. (2014). PLoS ONE, 9(5), e96905."
+            ]
+          }
+        },
+        {
+          "name": "Magnesium",
+          "usda_nutrient_id": "1090",
+          "unit": "mg",
+          "min_amount_per_100g": 20,
+          "priority": 5,
+          "classification": "essential_mineral",
+          "xai": {
+            "user_message": "Contains Magnesium — supports the brain enzymes needed to produce happiness chemicals like serotonin and dopamine.",
+            "psychological_explanation": "Adequate magnesium is associated with better mood and emotional resilience. A clinical trial (Tarleton et al., 2017) found magnesium supplementation improved mood in adults — showing it supports overall brain chemistry for positive emotional states.",
+            "biological_explanation": "Magnesium is needed for ATP (energy) production in brain cells and for over 300 enzyme reactions, including those involved in neurotransmitter synthesis. Healthy magnesium levels help maintain the chemical environment the brain needs to sustain positive moods.",
+            "references": [
+              "Tarleton EK et al. (2017). PLoS ONE, 12(6), e0180067."
+            ]
+          }
+        }
+      ],
+      "supportive_compounds": []
+    },
+    {
+      "emotion_id": "excitement",
+      "emotion_name": "Excitement",
+      "emoji": "🤩",
+      "color_hex": "#FF9800",
+      "valence": "positive",
+      "goal": "vibe_match",
+      "food_preference_style": "energising_protein",
+      "app_message": "Feeling energised and excited! Here are foods that fuel your high-energy vibe.",
+      "avoid": [
+        "excess refined sugar — causes energy crash",
+        "alcohol"
+      ],
+      "food_preference_research": {
+        "summary": "High positive arousal states like excitement are associated with preference for energising, protein-rich, and sustaining foods. People in energised states prefer foods that match their high-energy feeling.",
+        "references": [
+          "Macht M (2008). How emotions affect eating: A five-way model. Appetite, 50(1), 1–11. Finding: Joy and high arousal states are associated with hedonic eating — eating for pleasure and energy.",
+          "Ashurst JV et al. (2018). Emotions categorised as positive, energised, and relaxed were associated with fruits, vegetables, and protein-rich food choices. BMC Public Health.",
+          "Cameron EM et al. (2015). Positive affect leads to healthier food choices. Meta-analysis."
+        ]
+      },
+      "diet_notes": {
+        "vegan": "Tofu, edamame, pumpkin seeds (tyrosine and iron), lentils (iron), fortified plant milk (B12), flaxseed (omega-3). Pair plant iron with Vitamin C foods to improve absorption.",
+        "vegetarian": "Same as vegan. Add eggs for tyrosine, iron, and B12.",
+        "pescatarian": "Salmon for omega-3 and B12. All other nutrients from plant and egg sources."
+      },
+      "nutrients": [
+        {
+          "name": "Tyrosine",
+          "usda_nutrient_id": "1214",
+          "unit": "g",
+          "min_amount_per_100g": 0.2,
+          "priority": 1,
+          "classification": "conditionally_essential_amino_acid",
+          "xai": {
+            "user_message": "Rich in Tyrosine — your brain converts this into dopamine and norepinephrine, the chemicals behind your excited, motivated feeling.",
+            "psychological_explanation": "Tyrosine is the direct building block for dopamine and norepinephrine — the two brain chemicals that drive motivation, reward, and high-energy positive states like excitement. A review of clinical trials (Jongkees et al., 2015) showed tyrosine improves mental performance and energy under demanding conditions.",
+            "biological_explanation": "Tyrosine is converted to L-DOPA by an enzyme called tyrosine hydroxylase (which needs iron to work). L-DOPA is then converted to dopamine (needing B6), and dopamine is further converted to norepinephrine. This single chain produces the two key chemicals behind the excited, energised feeling.",
+            "references": [
+              "Bromberg-Martin ES et al. (2010). Dopamine in motivational control: rewarding, aversive, and alerting. Neuron, 68(5), 815–834.",
+              "Jongkees BJ et al. (2015). Effect of tyrosine supplementation on clinical and healthy populations under stress and cognitive demands. Journal of Psychiatric Research, 70, 50–57.",
+              "Berridge KC & Kringelbach ML (2015). Pleasure systems in the brain. Neuron, 86(3), 646–664."
+            ]
+          }
+        },
+        {
+          "name": "Iron",
+          "usda_nutrient_id": "1089",
+          "unit": "mg",
+          "min_amount_per_100g": 1,
+          "priority": 2,
+          "classification": "essential_mineral",
+          "xai": {
+            "user_message": "Contains Iron — needed for the enzyme that starts dopamine production. Without iron, tyrosine cannot be converted into energy-boosting dopamine.",
+            "psychological_explanation": "Iron deficiency reduces dopamine production even when tyrosine intake is good. This causes fatigue and low motivation — directly reducing the energy and drive behind excitement. Restoring iron improves mood and motivation.",
+            "biological_explanation": "Tyrosine hydroxylase — the enzyme that converts tyrosine into L-DOPA (the first step in dopamine production) — requires iron as a cofactor. Without adequate iron, this enzyme cannot function properly, meaning dopamine synthesis is bottlenecked regardless of how much tyrosine is consumed.",
+            "references": [
+              "Beard JL & Connor JR (2003). Iron status and neural functioning. Annual Review of Nutrition, 23, 41–58.",
+              "Lachance L & Ramsey D (2015). World Journal of Psychiatry, 5(4), 359."
+            ]
+          }
+        },
+        {
+          "name": "Vitamin B12",
+          "usda_nutrient_id": "1178",
+          "unit": "mcg",
+          "min_amount_per_100g": 0.3,
+          "priority": 3,
+          "classification": "water_soluble_vitamin",
+          "xai": {
+            "user_message": "Source of Vitamin B12 — supports brain cell energy. B12 deficiency causes fatigue that directly reduces your excitement and drive.",
+            "psychological_explanation": "B12 deficiency is well known to cause fatigue, low motivation, and poor energy — all of which reduce the high-arousal positive state of excitement. Adequate B12 keeps neurons firing efficiently.",
+            "biological_explanation": "B12 is needed for myelin — the protective coating around nerve cells that allows electrical signals to travel efficiently. It also supports mitochondrial energy production in brain cells and the SAM-e cycle for dopamine synthesis. Without B12, nerve signalling slows and energy drops.",
+            "references": [
+              "Coppen A & Bolander-Gouaille C (2005). Journal of Psychopharmacology, 19(1), 59–65.",
+              "Lachance L & Ramsey D (2015). World Journal of Psychiatry, 5(4), 359."
+            ]
+          }
+        },
+        {
+          "name": "Omega-3 Fatty Acids",
+          "usda_nutrient_id": "1404",
+          "unit": "g",
+          "min_amount_per_100g": 0.3,
+          "priority": 4,
+          "classification": "essential_fatty_acid",
+          "xai": {
+            "user_message": "High in Omega-3 — keeps dopamine receptors working efficiently so you can sustain your energised, excited state.",
+            "psychological_explanation": "Omega-3 maintains the brain chemistry needed for positive high-energy states. It improves how well dopamine and norepinephrine receptors respond to signals, helping sustain the feeling of excitement.",
+            "biological_explanation": "DHA and EPA are embedded into the membranes of brain cells, particularly in the striatum and prefrontal cortex — the areas most active during excitement and reward. Healthy membranes keep dopamine and norepinephrine receptors fluid and responsive.",
+            "references": [
+              "Grosso G et al. (2014). PLoS ONE, 9(5), e96905.",
+              "Larrieu T & Layé S (2018). Frontiers in Physiology, 9, 1047."
+            ]
+          }
+        }
+      ],
+      "supportive_compounds": []
+    },
+    {
+      "emotion_id": "gratitude",
+      "emotion_name": "Gratitude",
+      "emoji": "🙏",
+      "color_hex": "#26A69A",
+      "valence": "positive",
+      "goal": "vibe_match",
+      "food_preference_style": "sweet_and_fresh",
+      "app_message": "Feeling grateful is beautiful. Here are warm, feel-good foods that match your mood.",
+      "avoid": [
+        "excess alcohol"
+      ],
+      "food_preference_research": {
+        "summary": "Research directly shows grateful people prefer sweet and pleasant foods. Studies also show people in warm, prosocial emotional states like gratitude associate sweet taste with their positive feelings.",
+        "references": [
+          "Schlosser M (2015). Grateful for the good, not just the great: Gratitude and food preference. Appetite (4 experiments, N≈400). Finding: Grateful participants consumed significantly more sweet foods than neutral or pride conditions (2.24 vs 1.69 pieces).",
+          "Zhou X & Tse CS (2020). People conceptually associate sweet taste with positive emotion words including grateful, happiness, love, and acceptance. Frontiers in Psychology.",
+          "Lyman B (1982). Journal of Psychology, 112(1), 121–127. Positive emotions associated with healthy food preferences.",
+          "Cameron EM et al. (2015). Meta-analysis: Positive affect increases preference for healthy foods."
+        ]
+      },
+      "diet_notes": {
+        "vegan": "Bananas, berries, oats, dark chocolate (natural sweet match), leafy greens (folate), fortified plant milk (Vitamin D), walnuts and flaxseed (omega-3).",
+        "vegetarian": "Same as vegan. Add eggs for tryptophan and B6.",
+        "pescatarian": "Salmon for omega-3 and Vitamin D. All other nutrients from plant sources."
+      },
+      "nutrients": [
+        {
+          "name": "Tryptophan",
+          "usda_nutrient_id": "1210",
+          "unit": "g",
+          "min_amount_per_100g": 0.1,
+          "priority": 1,
+          "classification": "essential_amino_acid",
+          "xai": {
+            "user_message": "Rich in Tryptophan — makes serotonin, which supports the warmth and appreciation you feel when grateful.",
+            "psychological_explanation": "Gratitude activates the hypothalamus and reward areas in the brain that boost serotonin (Zahn et al., 2009). Tryptophan is the only dietary ingredient the brain can use to make serotonin, making tryptophan-rich foods a natural support for the warm, connected feeling of gratitude.",
+            "biological_explanation": "Tryptophan is converted to serotonin inside the brain via the 5-HTP intermediate. Serotonin activates receptors in the hypothalamus and limbic system — the exact regions that neuroimaging studies (fMRI) show are active during gratitude. This means the food directly feeds the brain pathway behind the grateful feeling.",
+            "references": [
+              "Zahn R et al. (2009). The neural basis of human social values: evidence from functional MRI. Cerebral Cortex, 19(2), 276–283.",
+              "Jenkins TA et al. (2016). Nutrients, 8(1), 56.",
+              "Schlosser M (2015). Gratitude and food preference — Appetite (4 experiments, N≈400)."
+            ]
+          }
+        },
+        {
+          "name": "Folate (Vitamin B9)",
+          "usda_nutrient_id": "1177",
+          "unit": "mcg",
+          "min_amount_per_100g": 20,
+          "priority": 2,
+          "classification": "water_soluble_vitamin",
+          "xai": {
+            "user_message": "Contains Folate — supports the brain's serotonin and dopamine production that underpins warm, grateful feelings.",
+            "psychological_explanation": "Folate supports the production of SAM-e, which the brain uses to make serotonin and dopamine. Low folate is associated with reduced positive affect and difficulty feeling warm, prosocial emotions like gratitude.",
+            "biological_explanation": "Folate drives the one-carbon methylation cycle producing SAM-e (S-adenosylmethionine). SAM-e donates methyl groups needed to synthesise serotonin and dopamine — the two neurochemicals active during gratitude. Without adequate folate, this production slows.",
+            "references": [
+              "Coppen A & Bolander-Gouaille C (2005). Journal of Psychopharmacology, 19(1), 59–65."
+            ]
+          }
+        },
+        {
+          "name": "Omega-3 Fatty Acids",
+          "usda_nutrient_id": "1404",
+          "unit": "g",
+          "min_amount_per_100g": 0.3,
+          "priority": 3,
+          "classification": "essential_fatty_acid",
+          "xai": {
+            "user_message": "High in Omega-3 — maintains the brain environment that allows warm, grateful feelings to flourish.",
+            "psychological_explanation": "Omega-3 supports overall positive mood and emotional well-being by maintaining healthy brain chemistry. It reduces neuroinflammation that can blunt positive emotional states like gratitude.",
+            "biological_explanation": "EPA and DHA maintain the fluidity of serotonin and dopamine receptor membranes in the limbic system — the brain regions active during gratitude. Healthy membranes mean mood signals are transmitted more effectively.",
+            "references": [
+              "Grosso G et al. (2014). PLoS ONE, 9(5), e96905.",
+              "Larrieu T & Layé S (2018). Frontiers in Physiology, 9, 1047."
+            ]
+          }
+        },
+        {
+          "name": "Vitamin D",
+          "usda_nutrient_id": "1114",
+          "unit": "IU",
+          "min_amount_per_100g": 50,
+          "priority": 4,
+          "classification": "fat_soluble_vitamin",
+          "xai": {
+            "user_message": "Source of Vitamin D — regulates serotonin production in the brain. Supports the warm, positive feelings of gratitude.",
+            "psychological_explanation": "Vitamin D regulates serotonin synthesis, which underpins positive prosocial emotional states. Low Vitamin D is associated with reduced emotional well-being and blunted positive affect.",
+            "biological_explanation": "Vitamin D directly controls the TPH2 gene — the gene that controls how much serotonin the brain makes. The hypothalamus (the brain area activated by gratitude per fMRI research) has Vitamin D receptors and is directly regulated by Vitamin D for serotonin production.",
+            "references": [
+              "Patrick RP & Ames BN (2015). FASEB Journal, 29(6), 2207–2222.",
+              "Anglin RE et al. (2013). British Journal of Psychiatry, 202, 100–107."
+            ]
+          }
+        }
+      ],
+      "supportive_compounds": []
+    }
+  ]
+}
